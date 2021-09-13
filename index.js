@@ -43,8 +43,8 @@ const example = async () => {
 
 (async () => {
     console.log('Aplicación iniciada...');
-    console.log(process.env);
     await example();
+    console.log(process.env);
     console.log('Aplicación finalizada...')
 })();
 
