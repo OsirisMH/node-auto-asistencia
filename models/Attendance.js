@@ -20,8 +20,8 @@ const self = {
     },
 
     initialize: async () => {
-        // self.browser =  await puppeteer.launch();
-        self.browser =  await puppeteer.launch({headless: false}); // DEV
+        self.browser =  await puppeteer.launch();
+        // self.browser =  await puppeteer.launch({headless: false}); // DEV
         self.page = await self.browser.newPage();
         self.classes = self.getClasses();
     },
