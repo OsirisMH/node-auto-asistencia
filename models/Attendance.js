@@ -1,11 +1,11 @@
 const fs = require('fs');
 const puppeteer = require('puppeteer');
 const moment = require('moment');
+require('dotenv').config();
+require('colors');
 
 const { confirmar } = require('../utils/inquirer');
 const { notify } = require('../utils/pushbullet');
-
-require('dotenv').config();
 
 const self = {
     browser: null,
@@ -21,6 +21,7 @@ const self = {
 
     initialize: async () => {
         self.browser =  await puppeteer.launch();
+        // self.browser =  await puppeteer.launch({headless: false}); // DEV
         self.page = await self.browser.newPage();
         self.classes = self.getClasses();
     },
@@ -39,13 +40,13 @@ const self = {
 
             /* Verificar si hay algun error */
             await self.page.waitForSelector('#action-menu-toggle-1');
-            console.log('Inicio de sesión exitoso');
+            console.log('Inicio de sesión exitoso'.brightGreen);
 
         } catch(e) {
             let res = await self.page.$('div[class="alert alert-danger"]');
             let errorMessage = await (await res.getProperty('innerText')).jsonValue();
-            console.log('No fue posible iniciar sesión');
-            console.log(`Error de la página: ${errorMessage}`);
+            console.log(`${'Error'.brightRed}: No fue posible iniciar sesión`);
+            console.log(`${'Error'.brightRed} de la página: ${errorMessage}`);
         }
     },
 
@@ -61,68 +62,98 @@ const self = {
 
             /* Verificar hubo algun error */
             await self.page.waitForSelector(`a[href="${process.env.BASE_URL}"]`)
-            console.log('Sesión cerrada');
+            console.log('Sesión cerrada correctamente'.brightGreen);
 
             /* Cerrar el navegador */
-            await confirmar('Pausa...');
+            // await confirmar('Pausa...'); // DEV
             await self.browser.close();
 
         } catch(e) {
-            console.log('Ha ocurrido un error al intentar cerrar sesión');
+            console.log(`${'Error'.brightRed}: No fue posible cerrar sesión de manera tradicional`);
+            console.log(`Se forzó el cierre de sesión`.brightYellow);
             await self.page.deleteCookie({ name: process.env.MOODLE_COOKIE_NAME });
-            await confirmar('Pausa...');
+            // await confirmar('Pausa...'); // DEV
             await self.browser.close();
         }
     },
 
     takeAttendance: async () => {
         /* Dirigirse a la página de toma de asistencia correspondiente */
-        // Configurar la clase de acuerdo a la hora
-        self.checkSetClass();
-        const { urls } = self.classes;
-        await self.page.goto(urls[self.currentClass]);
+        try {
+            // Configurar la clase de acuerdo a la hora
+            self.checkSetClass();
+            const { urls } = self.classes;
+            // await self.page.goto(urls[self.currentClass]);
+            await self.page.goto(urls[0]); //DEV
 
-        // Revisar que nos encontremos en la página de asistencia
-        await self.page.waitForSelector('.breadcrumb>li:nth-last-child(2)');
+            // Verificar que nos encontremos en la página de asistencia
+            await self.page.waitForSelector('.breadcrumb>li:nth-last-child(2)');
 
-        // Revisar el estado de la asistencia
-        await self.page.waitForSelector('.generaltable>tbody .statuscol');
-        const status = await self.page.$('.generaltable>tbody .statuscol');
-        const text = await (await status.getProperty('innerText')).jsonValue();
-        if ( text === 'Presente') {
-            await notify('La asistencia ya había sido tomada');
-        }
-        else {
-            // Esperar delay en caso de ser necesario
-            let minutos = moment().minute();
-            while ( minutos < 15 ){
-                await self.page.waitForTimeout(60000);
-                minutos = moment().minute();
-                console.log(minutos);
-            }
-
-            // Recargar página
-            await self.page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
-
-            // Presionar en Enviar asistencia
-            await self.page.waitForSelector('.generaltable>tbody .statuscol>a');
-            await self.page.click('.generaltable>tbody .statuscol>a');
-
-            // Seleccionar presente
-            await self.page.waitForSelector('.fcontainer #fgroup_id_statusarray>div:last-child fieldset>div>label input');
-            await self.page.click('.fcontainer #fgroup_id_statusarray>div:last-child fieldset>div>label input');
-            
-            // Enviar peitción
-            await self.page.waitForSelector('#id_submitbutton');
-            await self.page.click('#id_submitbutton');
-
-            // Verificar que se ha concluido el proceso
-            await self.page.waitForSelector('.generaltable>tbody .lastcol');
-
-            // Enviar notificación de la asistencia tomada
+            // Verificar el estado de la asistencia
+            // Obtener el nombre de la materia
+            await self.page.waitForSelector('.page-header-headings');
             const materia = await self.page.$('.page-header-headings');
             const nombreMateria = await (await materia.getProperty('innerText')).jsonValue();
-            await notify(`Asistencia tomada - ${nombreMateria}`);
+            console.log(`${nombreMateria}`.brightCyan);
+
+            // Verificar que sea posible la toma de asistencia
+            // await self.page.waitForSelector('.generaltable>tbody .statuscol');
+            const status = await self.page.$('.generaltable>tbody .statuscol');
+
+            if ( status ){ // Caso 1: Es posible tomar la asistencia
+                const text = await (await status.getProperty('innerText')).jsonValue();
+                if ( text === 'Presente') { // Caso 1.1: Si la asistencia ya ha sido tomada
+                    // Notificar al usuario
+                    await notify(`La asistencia ya había sido tomada - ${nombreMateria}`);
+                }
+                else { // Caso 1.2: La asistencia no ha sido tomada
+                    // Esperar delay en caso de ser necesario
+                    let minutos = moment().minute();
+                    while ( minutos < 15 ){
+                        await self.page.waitForTimeout(60000);
+                        minutos = moment().minute();
+                        console.log(`${ 15 - minutos }`.brightGreen + ' restantes...');
+                    }
+        
+                    // Recargar página
+                    await self.page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
+        
+                    // Verificar que pueda presionarse el boton Enviar asistencia
+                    await self.page.waitForSelector('.generaltable>tbody .statuscol');
+                    if ((await self.page.$('.generaltable>tbody .statuscol>a'))) { // Si está habilitada la asistencia
+                        // Presionar en Enviar asistencia
+                        await self.page.click('.generaltable>tbody .statuscol>a');
+                        
+                        // Seleccionar presente
+                        await self.page.waitForSelector('.fcontainer #fgroup_id_statusarray>div:last-child fieldset>div>label input');
+                        await self.page.click('.fcontainer #fgroup_id_statusarray>div:last-child fieldset>div>label input');
+                        
+                        // Enviar peitción
+                        await self.page.waitForSelector('#id_submitbutton');
+                        await self.page.click('#id_submitbutton');
+            
+                        // Verificar que se ha concluido el proceso
+                        await self.page.waitForSelector('.generaltable>tbody .lastcol');
+            
+                        // Enviar notificación de la asistencia tomada
+                        console.log(`${'Asistencia tomada'.brightGreen}`);
+                        await notify(`Asistencia tomada - ${nombreMateria}`);
+                    }
+                    else { // Si no está habilitada la asistencia
+                        // Enviar notificación del error
+                        console.log(`${'Error'.brightRed}: No fue posible tomar asistencia | No se habilitó la asistencia`);
+                        await notify(`No fue posible tomar asistencia - ${nombreMateria}:\nNo se habilitó la asistencia`);
+                    }
+                }
+            }
+            else { // Caso 2: No es posible tomar la asistencia (No hay asistencia asignada)
+                // Notificar al usuario
+                console.log(`${'Error'.brightRed}: No fue posible tomar asistencia | No hay asistencia asignada para la clase`);
+                await notify(`Asistencia inexistente:\nNo hay asistencia asignada para la clase ${nombreMateria}`);
+            }  
+        }
+        catch(error) {
+            console.log(`${'Error'.red}: ${error}`);
         }
     },
 
