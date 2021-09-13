@@ -1,5 +1,4 @@
 const cron = require('node-cron');
-const attendance = require("./models/attendance");
 // const moment = require('moment');
 
 // cron.schedule('15 15-18 * * 1,2,3,4,5', () => {
