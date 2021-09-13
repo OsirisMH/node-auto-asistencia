@@ -20,7 +20,10 @@ const self = {
     },
 
     initialize: async () => {
-        self.browser =  await puppeteer.launch();
+        self.browser =  await puppeteer.launch({
+            headless: true,
+            args: ['--no-sandbox','--disable-setuid-sandbox']
+        }); // PRODUCTION
         // self.browser =  await puppeteer.launch({headless: false}); // DEV
         self.page = await self.browser.newPage();
         self.classes = self.getClasses();
