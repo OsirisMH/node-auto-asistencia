@@ -1,8 +1,6 @@
 const cron = require('node-cron');
-const moment = require('moment');
 const puppeteer = require('puppeteer');
 const { Attendance } = require('./models/Attendance');
-require('dotenv').config();
 
 const main = async() => {
     try {
@@ -32,7 +30,6 @@ const example = async () => {
         console.log(e);
   }
 };
-// const self = require('./models/Attendance');
 
 
 // cron.schedule('15 15-18 * * 1,2,3,4,5', () => {
@@ -40,13 +37,14 @@ const example = async () => {
 // 	console.log(d);
 // });
 
+cron.schedule('15 15-18 * * 1,2,3,4,5', () => {
+    (async () => {
+        console.log('Aplicación iniciada...');
+        await main();
+        console.log('Aplicación finalizada...')
+    })();
+});
 
-(async () => {
-    console.log('Aplicación iniciada...');
-    await example();
-    console.log(process.env);
-    console.log('Aplicación finalizada...')
-})();
 
 // cron.schedule('*/30 * * * *', () => {
 //     const date = moment().format('MMMM Do YYYY, h:mm:ss a');
