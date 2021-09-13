@@ -2,7 +2,13 @@ const cron = require('node-cron');
 const attendance = require("./models/attendance");
 // const moment = require('moment');
 
-cron.schedule('5,10,50 14-15 * * *', () => {
+// cron.schedule('15 15-18 * * 1,2,3,4,5', () => {
+//     const d = new Date();
+// 	console.log(d);
+// });
+console.log('Aplicación iniciada...');
+
+cron.schedule('*/15 * * * 1,2,3,4,5', () => {
     const d = new Date();
 	console.log(d);
 });
