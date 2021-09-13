@@ -108,10 +108,10 @@ const self = {
                 }
                 else { // Caso 1.2: La asistencia no ha sido tomada
                     // Esperar delay en caso de ser necesario
-                    let minutos = moment().minute();
+                    let minutos = moment().tz('America/Chihuahua').minute();
                     while ( minutos < 15 ){
                         await self.page.waitForTimeout(60000);
-                        minutos = moment().minute();
+                        minutos = moment().tz('America/Chihuahua').minute();
                         console.log(`${ 15 - minutos }`.brightGreen + ' restantes...');
                     }
         
@@ -158,7 +158,7 @@ const self = {
     },
 
     checkSetClass: () => {
-        const hour = moment().hour();
+        const hour = moment().tz('America/Chihuahua').hour();
         switch( hour ){
             case 15:
                 self.currentClass = 0;

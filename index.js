@@ -1,15 +1,16 @@
 const cron = require('node-cron');
-// const moment = require('moment');
+const moment = require('moment');
 
 // cron.schedule('15 15-18 * * 1,2,3,4,5', () => {
 //     const d = new Date();
 // 	console.log(d);
 // });
+
 console.log('Aplicación iniciada...');
 
-cron.schedule('*/10 22,23 * * *', () => {
-    const d = new Date();
-	console.log(d);
+cron.schedule('*/1 23 * * *', () => {
+    const date = moment().format('MMMM Do YYYY, h:mm:ss a');
+    console.log(date);
 });
 
 // (async () => {
