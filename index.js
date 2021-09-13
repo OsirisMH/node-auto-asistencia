@@ -2,6 +2,7 @@ const cron = require('node-cron');
 const moment = require('moment');
 const puppeteer = require('puppeteer');
 const { Attendance } = require('./models/Attendance');
+require('dotenv').config();
 
 const main = async() => {
     try {
@@ -40,6 +41,7 @@ const example = async () => {
 
 (async () => {
     console.log('Aplicación iniciada...');
+    console.log(process.env);
     await example();
     console.log('Aplicación finalizada...')
 })();
