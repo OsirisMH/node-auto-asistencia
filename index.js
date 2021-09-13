@@ -7,7 +7,7 @@ const cron = require('node-cron');
 // });
 console.log('Aplicación iniciada...');
 
-cron.schedule('*/10 22 * * 1,2,3,4,5', () => {
+cron.schedule('*/10 22,23 * * *', () => {
     const d = new Date();
 	console.log(d);
 });
