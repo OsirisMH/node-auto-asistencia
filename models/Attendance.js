@@ -83,13 +83,14 @@ const self = {
         /* Dirigirse a la página de toma de asistencia correspondiente */
         try {
             // Configurar la clase de acuerdo a la hora
+            const { urls } = self.classes;
+
             self.checkSetClass();
             if ( !urls[self.currentClass] ){
                 console.log(`No existe enlace para la clase de la hora ${ moment().tz('America/Chihuahua').hour() }`);
                 return;
             }
 
-            const { urls } = self.classes;
             await self.page.goto(urls[self.currentClass]);
             // await self.page.goto(urls[0]); //DEV
 
