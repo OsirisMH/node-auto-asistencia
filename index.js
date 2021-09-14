@@ -35,7 +35,7 @@ const main = async() => {
 // }
 console.log('Inicio...');
     
-cron.schedule('15, 20 15,16,17,18,19 * * 1,2,3,4,5', async() => {
+cron.schedule('15 15,16,17,18,19 * * 1,2,3,4,5', async() => {
     await main();
     console.log(moment().format('LT'));
 });
