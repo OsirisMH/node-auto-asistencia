@@ -84,9 +84,14 @@ const self = {
         try {
             // Configurar la clase de acuerdo a la hora
             self.checkSetClass();
+            if ( !urls[self.currentClass] ){
+                console.log(`No existe enlace para la clase de la hora ${ moment().tz('America/Chihuahua').hour() }`);
+                return;
+            }
+
             const { urls } = self.classes;
-            // await self.page.goto(urls[self.currentClass]);
-            await self.page.goto(urls[0]); //DEV
+            await self.page.goto(urls[self.currentClass]);
+            // await self.page.goto(urls[0]); //DEV
 
             // Verificar que nos encontremos en la página de asistencia
             await self.page.waitForSelector('.breadcrumb>li:nth-last-child(2)');

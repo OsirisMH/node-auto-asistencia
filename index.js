@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-const puppeteer = require('puppeteer');
+const moment = require('moment');
 const { Attendance } = require('./models/Attendance');
 
 const main = async() => {
@@ -14,35 +14,30 @@ const main = async() => {
     }
 };
 
-const example = async () => {
-  try{
-    const browser =  await puppeteer.launch({
-        args: ['--no-sandbox']
-    }); 
-    const page = await browser.newPage();
-    await page.goto('https://example.com');
-    const h1 = await page.$('h1');
-    const title = await (await h1.getProperty('innerText')).jsonValue();
-    console.log(title);
-    await browser.close();
-  }
-  catch(e){
-        console.log(e);
-  }
-};
-
-
 // cron.schedule('15 15-18 * * 1,2,3,4,5', () => {
 //     const d = new Date();
 // 	console.log(d);
 // });
 
-cron.schedule('15 15-18 * * 1,2,3,4,5', () => {
-    (async () => {
-        console.log('Aplicación iniciada...');
-        await main();
-        console.log('Aplicación finalizada...')
-    })();
+// console.log('Aplicación iniciada...');
+// if ( moment().day() > 0 && moment().day() < 6) {
+//     if ( moment().hour() >= 15 && moment().hour() < 20 ) {
+//         cron.schedule('15 15-18 * * 1,2,3,4,5', async() => {
+//             await main();
+//         });
+//     }
+//     else {
+//         console.log('Fuera de horario escolar...');
+//     }
+// }
+// else {
+//     console.log('Fin de semana...');
+// }
+console.log('Inicio...');
+    
+cron.schedule('15 15,16,17,18,19 * * 1,2,3,4,5', async() => {
+    await main();
+    console.log(moment().format('LT'));
 });
 
 
