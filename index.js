@@ -1,13 +1,18 @@
 const cron = require('node-cron');
 const moment = require('moment');
-const { Attendance } = require('./models/Attendance');
-const { sendMessage } = require('./utils/telegram');
+require('dotenv').config();
+require('colors');
 
-const main = async() => {
+const { Attendance } = require('./models/Attendance');
+
+const main = async(user) => {
     try {
+        const { moddleUsername, moddlePassword } = user;
+        
+        console.log(`${user.name}`.brightCyan);
         await Attendance.initialize();
-        await Attendance.login();
-        await Attendance.takeAttendance();
+        await Attendance.login(moddleUsername, moddlePassword);
+        await Attendance.takeAttendance(user);
         await Attendance.logout();
     }
     catch (e) {
@@ -15,58 +20,19 @@ const main = async() => {
     }
 };
 
-// cron.schedule('15 15-18 * * 1,2,3,4,5', () => {
-//     const d = new Date();
-// 	console.log(d);
-// });
 
-// console.log('Aplicación iniciada...');
-// if ( moment().day() > 0 && moment().day() < 6) {
-//     if ( moment().hour() >= 15 && moment().hour() < 20 ) {
-//         cron.schedule('15 15-18 * * 1,2,3,4,5', async() => {
-//             await main();
-//         });
-//     }
-//     else {
-//         console.log('Fuera de horario escolar...');
-//     }
-// }
-// else {
-//     console.log('Fin de semana...');
-// }
-console.log('Inicio...');
-    
-// cron.schedule('15 15,16,17,18,19 * * 1,2,3,4,5', async() => {
-//     await main();
-//     console.log(moment().format('LT'));
-// });
+console.log(`Ejecución iniciada (${ moment().tz('America/Chihuahua').format('MMMM Do YYYY, h:mm:ss a') })...\n`);
+const { osiris, adrian } = JSON.parse(process.env.USER_DATA);
 
-// cron.schedule('*/30 * * * *', () => {
-//     const date = moment().format('MMMM Do YYYY, h:mm:ss a');
-//     console.log(date);
-//     // main();
-// });
+cron.schedule('15 15,16,17,18,19 * * 1,2,3,4,5', async() => {
+    await main( osiris );
+    // await main( adrian );
+    console.log(`Ejecución finalizada (${ moment().tz('America/Chihuahua').format('MMMM Do YYYY, h:mm:ss a') })...`);
+}); // PRODUCTION
+
 
 // (async() => {
-
-//     try {
-//         if ( moment().day() > 0 && moment().day() < 6) {
-//             if ( moment().hour() >= 15 && moment().hour() < 20 ) {
-//                 await attendance.initialize();
-//                 await attendance.login();
-//                 await attendance.takeAttendance();
-//                 await attendance.logout();
-//             }
-//             else {
-//                 console.log('Fuera de horario escolar...');
-//             }
-//         }
-//         else {
-//             console.log('Fin de semana...');
-//         }
-//     }
-//     catch (e) {
-//         console.error(e);
-//     }
-
-// })();
+//     await main( osiris );
+//     await main( adrian );
+//     console.log(`Ejecución finalizada (${ moment().tz('America/Chihuahua').format('MMMM Do YYYY, h:mm:ss a') })...`);
+// })(); // DEV

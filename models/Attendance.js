@@ -4,8 +4,8 @@ const moment = require('moment');
 require('dotenv').config();
 require('colors');
 
-const { confirmar } = require('../utils/inquirer');
 const { notify } = require('../utils/pushbullet');
+const { sendMessage } = require('../utils/telegram');
 
 const self = {
     browser: null,
@@ -20,22 +20,23 @@ const self = {
     },
 
     initialize: async () => {
+        self.classes = self.getClasses();
         self.browser =  await puppeteer.launch({
             args: ['--no-sandbox']
         }); // PRODUCTION
-        // self.browser =  await puppeteer.launch({headless: false}); // DEV
+        // self.browser =  await puppeteer.launch({ headless: false }); // DEV
         self.page = await self.browser.newPage();
-        self.classes = self.getClasses();
+        console.log('Navegador iniciado!'.brightYellow);
     },
 
-    login: async() => {
+    login: async(user, pass) => {
         try {
             /* Ir a la página de inicio de sesión */
             await self.page.goto(process.env.BASE_URL, { waitUntil: 'networkidle0' });
 
             /* Introducir el usuario y contraseña */
-            await self.page.type('#username', process.env.MODDLE_USERNAME, { delay: 100 });
-            await self.page.type('#password', process.env.MODDLE_PASSWORD, { delay: 100 });
+            await self.page.type('#username', user, { delay: 100 });
+            await self.page.type('#password', pass, { delay: 100 });
 
             /* Clic en el botón login */
             await self.page.click('#loginbtn');
@@ -68,18 +69,23 @@ const self = {
 
             /* Cerrar el navegador */
             // await confirmar('Pausa...'); // DEV
+            await self.page.waitForTimeout(2000);
             await self.browser.close();
 
         } catch(e) {
             console.log(`${'Error'.brightRed}: No fue posible cerrar sesión de manera tradicional`);
             console.log(`Se forzó el cierre de sesión`.brightYellow);
             await self.page.deleteCookie({ name: process.env.MOODLE_COOKIE_NAME });
+            await self.page.waitForTimeout(2000);
             // await confirmar('Pausa...'); // DEV
             await self.browser.close();
         }
+        finally {
+            console.log('Navegador cerrado!\n'.brightYellow);
+        }
     },
 
-    takeAttendance: async () => {
+    takeAttendance: async ( user ) => {
         /* Dirigirse a la página de toma de asistencia correspondiente */
         try {
             // Configurar la clase de acuerdo a la hora
@@ -87,7 +93,8 @@ const self = {
 
             self.checkSetClass();
             if ( !urls[self.currentClass] ){
-                console.log(`No existe enlace para la clase de la hora ${ moment().tz('America/Chihuahua').hour() }`);
+                console.log(`No hay clases a a las: ${ moment().tz('America/Chihuahua').format('LT') }`);
+                await sendMessage(`No hay clases a a las: ${ moment().tz('America/Chihuahua').format('LT') }`, user); // TELEGRAM
                 return;
             }
 
@@ -112,7 +119,9 @@ const self = {
                 const text = await (await status.getProperty('innerText')).jsonValue();
                 if ( text === 'Presente') { // Caso 1.1: Si la asistencia ya ha sido tomada
                     // Notificar al usuario
-                    await notify(`La asistencia ya había sido tomada - ${nombreMateria}`);
+                    console.log(`${nombreMateria}: La asistencia ya había sido tomada - ${ user.name }`)
+                    // await notify(`La asistencia ya había sido tomada - ${nombreMateria}`); // PUSHBULLET
+                    await sendMessage(`${nombreMateria} - La asistencia ya había sido tomada`, user); // TELEGRAM
                 }
                 else { // Caso 1.2: La asistencia no ha sido tomada
                     // Esperar delay en caso de ser necesario
@@ -144,20 +153,23 @@ const self = {
                         await self.page.waitForSelector('.generaltable>tbody .lastcol');
             
                         // Enviar notificación de la asistencia tomada
-                        console.log(`${'Asistencia tomada'.brightGreen}`);
-                        await notify(`Asistencia tomada - ${nombreMateria}`);
+                        console.log(`${'Asistencia tomada'.brightGreen}`); // CONSOLE
+                        // await notify(`Asistencia tomada - ${nombreMateria}`); // PUSHBULLET
+                        await sendMessage(`${nombreMateria} - Su asistencia ya ha sido tomada`, user); // TELEGRAM
                     }
                     else { // Si no está habilitada la asistencia
                         // Enviar notificación del error
-                        console.log(`${'Error'.brightRed}: No fue posible tomar asistencia | No se habilitó la asistencia`);
-                        await notify(`No fue posible tomar asistencia - ${nombreMateria}:\nNo se habilitó la asistencia`);
+                        console.log(`${'Error'.brightRed}: No fue posible tomar asistencia | No se habilitó la asistencia`); // CONSOLE
+                        // await notify(`No fue posible tomar asistencia - ${nombreMateria}:\nNo se habilitó la asistencia`); // PUSHBULLET
+                        await sendMessage(`${nombreMateria} - No se habilitó la asistencia`, user); // TELEGRAM
                     }
                 }
             }
             else { // Caso 2: No es posible tomar la asistencia (No hay asistencia asignada)
                 // Notificar al usuario
-                console.log(`${'Error'.brightRed}: No fue posible tomar asistencia | No hay asistencia asignada para la clase`);
-                await notify(`Asistencia inexistente:\nNo hay asistencia asignada para la clase ${nombreMateria}`);
+                console.log(`${'Error'.brightRed}: No fue posible tomar asistencia | No hay asistencia asignada para la clase`); // CONSOLE
+                // await notify(`Asistencia inexistente:\nNo hay asistencia asignada para la clase ${nombreMateria}`); // PUSHBULLET
+                await sendMessage(`${nombreMateria} - Asistencia inexistente`, user); // TELEGRAM
             }  
         }
         catch(error) {
