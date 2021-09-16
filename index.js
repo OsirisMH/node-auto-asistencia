@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const moment = require('moment');
 const { Attendance } = require('./models/Attendance');
+const { sendMessage } = require('./utils/telegram');
 
 const main = async() => {
     try {
@@ -35,11 +36,10 @@ const main = async() => {
 // }
 console.log('Inicio...');
     
-cron.schedule('15 15,16,17,18,19 * * 1,2,3,4,5', async() => {
-    await main();
-    console.log(moment().format('LT'));
-});
-
+// cron.schedule('15 15,16,17,18,19 * * 1,2,3,4,5', async() => {
+//     await main();
+//     console.log(moment().format('LT'));
+// });
 
 // cron.schedule('*/30 * * * *', () => {
 //     const date = moment().format('MMMM Do YYYY, h:mm:ss a');
