@@ -22,8 +22,8 @@ const main = async(user) => {
 
 
 console.log(`Ejecución iniciada (${ moment().tz('America/Chihuahua').format('MMMM Do YYYY, h:mm:ss a') })...\n`);
-const { osiris, adrian } = JSON.parse(process.env.USER_DATA);
 
+const { osiris, adrian } = JSON.parse(process.env.USER_DATA);
 cron.schedule('15 15,16,17,18,19 * * 1,2,3,4,5', async() => {
     await main( osiris );
     // await main( adrian );

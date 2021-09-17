@@ -4,7 +4,6 @@ const moment = require('moment');
 require('dotenv').config();
 require('colors');
 
-const { notify } = require('../utils/pushbullet');
 const { sendMessage } = require('../utils/telegram');
 
 const self = {
@@ -112,16 +111,14 @@ const self = {
             console.log(`${nombreMateria}`.brightCyan);
 
             // Verificar que sea posible la toma de asistencia
-            // await self.page.waitForSelector('.generaltable>tbody .statuscol');
             const status = await self.page.$('.generaltable>tbody .statuscol');
 
             if ( status ){ // Caso 1: Es posible tomar la asistencia
                 const text = await (await status.getProperty('innerText')).jsonValue();
                 if ( text === 'Presente') { // Caso 1.1: Si la asistencia ya ha sido tomada
                     // Notificar al usuario
-                    console.log(`${nombreMateria}: La asistencia ya había sido tomada - ${ user.name }`)
-                    // await notify(`La asistencia ya había sido tomada - ${nombreMateria}`); // PUSHBULLET
-                    await sendMessage(`${nombreMateria} - La asistencia ya había sido tomada`, user); // TELEGRAM
+                    console.log(`${nombreMateria}: La asistencia ya había sido tomada - ${ user.name }`) // Consola
+                    await sendMessage(`${nombreMateria} - La asistencia ya había sido tomada`, user); // Telegram
                 }
                 else { // Caso 1.2: La asistencia no ha sido tomada
                     // Esperar delay en caso de ser necesario
@@ -129,7 +126,7 @@ const self = {
                     while ( minutos < 15 ){
                         await self.page.waitForTimeout(60000);
                         minutos = moment().tz('America/Chihuahua').minute();
-                        console.log(`${ 15 - minutos }`.brightGreen + ' restantes...');
+                        console.log(`${ 15 - minutos }`.brightGreen + ' restantes...'); // Consola
                     }
         
                     // Recargar página
@@ -153,27 +150,24 @@ const self = {
                         await self.page.waitForSelector('.generaltable>tbody .lastcol');
             
                         // Enviar notificación de la asistencia tomada
-                        console.log(`${'Asistencia tomada'.brightGreen}`); // CONSOLE
-                        // await notify(`Asistencia tomada - ${nombreMateria}`); // PUSHBULLET
-                        await sendMessage(`${nombreMateria} - Su asistencia ya ha sido tomada`, user); // TELEGRAM
+                        console.log(`${'Asistencia tomada'.brightGreen}`); // Consola
+                        await sendMessage(`${nombreMateria} - Su asistencia ya ha sido tomada`, user); // Telegram
                     }
                     else { // Si no está habilitada la asistencia
                         // Enviar notificación del error
-                        console.log(`${'Error'.brightRed}: No fue posible tomar asistencia | No se habilitó la asistencia`); // CONSOLE
-                        // await notify(`No fue posible tomar asistencia - ${nombreMateria}:\nNo se habilitó la asistencia`); // PUSHBULLET
-                        await sendMessage(`${nombreMateria} - No se habilitó la asistencia`, user); // TELEGRAM
+                        console.log(`${'Error'.brightRed}: No fue posible tomar asistencia | No se habilitó la asistencia`); // Consola
+                        await sendMessage(`${nombreMateria} - No se habilitó la asistencia`, user); // Telegram
                     }
                 }
             }
             else { // Caso 2: No es posible tomar la asistencia (No hay asistencia asignada)
                 // Notificar al usuario
-                console.log(`${'Error'.brightRed}: No fue posible tomar asistencia | No hay asistencia asignada para la clase`); // CONSOLE
-                // await notify(`Asistencia inexistente:\nNo hay asistencia asignada para la clase ${nombreMateria}`); // PUSHBULLET
-                await sendMessage(`${nombreMateria} - Asistencia inexistente`, user); // TELEGRAM
+                console.log(`${'Error'.brightRed}: No fue posible tomar asistencia | No hay asistencia asignada para la clase`); // Consola
+                await sendMessage(`${nombreMateria} - Asistencia inexistente`, user); // Telegram
             }  
         }
         catch(error) {
-            console.log(`${'Error'.red}: ${error}`);
+            console.log(`${'Error'.red}: ${error}`); // Consola
         }
     },
 

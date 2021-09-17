@@ -7,6 +7,6 @@
 - Puppeteer
 - dotenv
 - axios
-- Pushbullet
+- Telegram api & bot
 
-### Simple aplicación que automatiza el proceso de automatización de la asistencia enviando notificación por medio de Pushbullet
+### Simple aplicación que automatiza el proceso de automatización de la asistencia enviando notificación por medio de un bot en Telegram
