@@ -1,5 +1,5 @@
 const axios = require('axios').default;
-require('dotenv').config();
+require('dotenv').config()
 
 // const sendMessage = async (message) => {
 //     const instance = axios.create({
@@ -19,10 +19,12 @@ require('dotenv').config();
 //     .catch(e => console.log(`Ha ocurrido un error con la petición: ${e}`))
 // }
 
-const sendMessage = async (msg = "UwU", user) => {
+const sendMessage = async (className, type, user) => {
     try {
-        const { name, id } = user;
-        const message = `${ msg }\n<a href="tg://user?id=${ id }">${ name }</a>`;
+        const classNameTag = `${ ( className ) ? `<b>${ className }</b>\n` : '' }`
+        const userTag = `\n<a href="tg://user?id=${ user.id }">${ user.name }</a>`;
+
+        const message = `${ classNameTag }${ type.message }${ userTag }`;
 
         const instance = axios.create({
             baseURL: `https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMessage`,
@@ -37,7 +39,7 @@ const sendMessage = async (msg = "UwU", user) => {
         });
 
         await instance.post()
-        console.log(`Mensaje enviado`)
+        console.log(`Notificación enviada`);
 
     } catch( e ){
         console.log(`Ha ocurrido un error con la petición: ${e}`)
