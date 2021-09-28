@@ -63,7 +63,7 @@ const self = {
             await self.page.waitForSelector('#action-menu-1-menu>a:last-child');
             await self.page.click('#action-menu-1-menu>a:last-child');
 
-            /* Verificar hubo algun error */
+            /* Verificar que la sesión haya sido cerrada correctamente */
             await self.page.waitForSelector(`a[href="${process.env.BASE_URL}"]`)
             console.log('Sesión cerrada correctamente'.brightGreen);
 
