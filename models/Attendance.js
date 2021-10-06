@@ -4,7 +4,7 @@ const moment = require('moment');
 require('dotenv').config();
 require('colors');
 
-const { sendMessage } = require('../utils/telegram');
+const { sendAnimation } = require('../utils/telegram');
 const types = require('../types/attendanceStatus');
 
 const self = {
@@ -94,7 +94,7 @@ const self = {
             self.checkSetClass();
             if ( !urls[self.currentClass] ){
                 console.log(`${ types.outOfTime.status } ${ types.outOfTime.code }: ${ types.outOfTime.message }`); // Consola
-                await sendMessage(null, types.outOfTime, user); // Telegram
+                await sendAnimation(null, types.outOfTime, user); // Telegram
                 return;
             }
 
@@ -119,7 +119,7 @@ const self = {
                 if ( text === 'Presente') { // Caso 1.1: Si la asistencia ya ha sido tomada
                     // Notificar al usuario
                     console.log(`${ types.alreadySaved.status } ${ types.alreadySaved.code }: ${ types.alreadySaved.message }`); // Consola
-                    await sendMessage(nombreMateria, types.alreadySaved, user); // Telegram
+                    await sendAnimation(nombreMateria, types.alreadySaved, user); // Telegram
                 }
                 else { // Caso 1.2: La asistencia no ha sido tomada
                     // Esperar delay en caso de ser necesario
@@ -152,19 +152,19 @@ const self = {
             
                         // Enviar notificación de la asistencia tomada
                         console.log(`${ types.saved.status } ${ types.saved.code }: ${ types.saved.message }`); // Consola
-                        await sendMessage(nombreMateria, types.saved, user); // Telegram
+                        await sendAnimation(nombreMateria, types.saved, user); // Telegram
                     }
                     else { // Si no está habilitada la asistencia
                         // Enviar notificación del error
                         console.log(`${ types.disable.status } ${ types.disable.code }: ${ types.disable.message }`); // Consola
-                        await sendMessage(nombreMateria, types.disable, user); // Telegram
+                        await sendAnimation(nombreMateria, types.disable, user); // Telegram
                     }
                 }
             }
             else { // Caso 2: No es posible tomar la asistencia (No hay asistencia asignada)
                 // Notificar al usuario
                 console.log(`${ types.nonExistent.status } ${ types.nonExistent.code }: ${ types.nonExistent.message }`); // Consola
-                await sendMessage(nombreMateria, types.nonExistent, user); // Telegram
+                await sendAnimation(nombreMateria, types.nonExistent, user); // Telegram
             }  
         }
         catch(error) {
