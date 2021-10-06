@@ -4,7 +4,7 @@ const types = {
     saved: {
         code: 1,
         status: "ok",
-        message: "Su asistencia ha sido tomada"
+        message: "Ya te tomé la asistencia prro 👍🏼"
     },
     outOfTime: {
         code: 2,
@@ -14,7 +14,7 @@ const types = {
     alreadySaved: {
         code: 3,
         status: "error",
-        message: `La asistencia ya había sido tomada`
+        message: `¡¿Para qué tomas la asistencia?! ¡Dejame hacer mi puto trabajo!`
     },
     disable: {
         code: 4,
