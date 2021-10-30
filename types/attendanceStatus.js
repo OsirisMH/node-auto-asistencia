@@ -4,7 +4,7 @@ const types = {
     saved: {
         code: 1,
         status: "ok",
-        message: "Ya te tomé la asistencia prro ^_~"
+        message: "Ya te he tomado la asistencia"
     },
     outOfTime: {
         code: 2,
