@@ -30,7 +30,7 @@ const completedTask = () => {
 
 // ? Función que verifica si detener la tarea
 const mayStopJob = () => {
-    const endTime = moment().hour(20).minute(00).second(0).format('k');
+    const endTime = moment().hour(19).minute(00).second(0).format('k');
     const currentTime = moment().tz('America/Chihuahua').format('k');
     return ( endTime === currentTime ) ? true : false;
 }
