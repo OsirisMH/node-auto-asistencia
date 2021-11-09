@@ -3,4 +3,8 @@
 /utils/inquirer.js
 /utils/pushbullet.js
 
+/database/db.json
+
+Procfile
+
 .env

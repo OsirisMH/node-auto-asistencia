@@ -9,4 +9,4 @@
 - axios
 - Telegram api & bot
 
-### Simple aplicación que automatiza el proceso de automatización de la asistencia enviando notificación por medio de un bot en Telegram
+## Simple aplicación que automatiza el proceso de automatización de la asistencia enviando notificación por medio de un bot en Telegram

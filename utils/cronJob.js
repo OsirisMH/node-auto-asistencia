@@ -4,9 +4,9 @@ require('dotenv').config();
 
 const { osiris, adrian } = JSON.parse(process.env.USER_DATA);
 const { Attendance } = require('../models/Attendance');
+const { sendMessage } = require('../utils/telegram');
 
 // * Documentación de las tareas a ejecutar con Cron
-
 // ? Función prinicipal
 const takeAttendance = async(user) => {
     try {
@@ -24,7 +24,8 @@ const takeAttendance = async(user) => {
 };
 
 // ? Función ejectutada al completar la tarea
-const completedTask = () => {
+const completedTask = async () => {
+    await sendMessage(' Mi trabajo ha terminado ^_^\n¡Nos vemos mañana!');
     console.log(`\nEjecución finalizada (${ moment().tz('America/Chihuahua').format('MMMM Do YYYY, h:mm:ss a') })...`);
 }
 

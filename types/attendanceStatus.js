@@ -1,10 +1,8 @@
-const moment = require('moment');
-
 const types = {
     saved: {
         code: 1,
         status: "ok",
-        message: "Ya te he tomado la asistencia"
+        message: "Asistencia tomada <3"
     },
     outOfTime: {
         code: 2,
