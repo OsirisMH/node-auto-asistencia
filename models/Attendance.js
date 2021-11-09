@@ -4,7 +4,6 @@ const moment = require('moment');
 require('dotenv').config();
 require('colors');
 
-const { sendAnimation } = require('../utils/telegram');
 const types = require('../types/attendanceStatus');
 
 const self = {
@@ -31,25 +30,59 @@ const self = {
 
     login: async(user, pass) => {
         try {
+            let intentos = 0;
+            let condition = false;
             /* Ir a la página de inicio de sesión */
             await self.page.goto(process.env.BASE_URL, { waitUntil: 'networkidle0' });
 
-            /* Introducir el usuario y contraseña */
-            await self.page.type('#username', user, { delay: 100 });
-            await self.page.type('#password', pass, { delay: 100 });
+            /*  
+                * Ciclo que valida usuario y contraseña
+                    ? Realiza 3 intentos, si el al terce inento no pude acceder
+                    ? el programa termina y notifica de lo sucedido
+                
+                    ? Si logra acceder el programa sigue su flujo normal
+            */
+            do {
+                /* Introducir el usuario y contraseña */
+                await self.page.type('#username', user, { delay: 100 });
+                await self.page.type('#password', pass, { delay: 100 });
 
-            /* Clic en el botón login */
-            await self.page.click('#loginbtn');
-
-            /* Verificar si hay algun error */
-            await self.page.waitForSelector('#action-menu-toggle-1');
-            console.log('Inicio de sesión exitoso'.brightGreen);
+                /* Clic en el botón login */
+                await self.page.click('#loginbtn');
+                
+                /* Verificar si hay algun error */
+                condition = await self.page.waitForSelector('#action-menu-toggle-1', { timeout: 2000 })
+                    .then( () => true )
+                    .catch( async() => {
+                        await self.page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
+                        console.log(`Intento #${intentos + 1}`.yellow);
+                        return false;
+                    })
+                intentos++;
+            }while( intentos < 3 && condition !== true );
+            
+            if ( condition ){
+                console.log('Inicio de sesión exitoso'.brightGreen);
+                return true;
+            }
+            else {
+                throw new Error('0');
+            }
 
         } catch(e) {
-            let res = await self.page.$('div[class="alert alert-danger"]');
-            let errorMessage = await (await res.getProperty('innerText')).jsonValue();
-            console.log(`${'Error'.brightRed}: No fue posible iniciar sesión`);
-            console.log(`${'Error'.brightRed} de la página: ${errorMessage}`);
+            if ( e.message === '0' ){
+                console.log(`${'Error'.brightRed}: contraseña o usuario incorrectos`);
+                await self.page.waitForTimeout(2000);
+                await self.browser.close();
+                console.log('Navegador cerrado!\n'.brightYellow);
+            }
+            else {
+                let res = await self.page.$('div[class="alert alert-danger"]');
+                let errorMessage = ( res ) ? await (await res.getProperty('innerText')).jsonValue() : e;
+                console.log(`${'Error'.brightRed}: No fue posible iniciar sesión`);
+                console.log(`${'Error'.brightRed} de la página: ${errorMessage}`);
+            }
+            return false;
         }
     },
 
@@ -85,7 +118,7 @@ const self = {
         }
     },
 
-    takeAttendance: async ( user ) => {
+    takeAttendance: async () => {
         /* Dirigirse a la página de toma de asistencia correspondiente */
         try {
             // Configurar la clase de acuerdo a la hora
@@ -94,7 +127,6 @@ const self = {
             self.checkSetClass();
             if ( !urls[self.currentClass] ){
                 console.log(`${ types.outOfTime.status } ${ types.outOfTime.code }: ${ types.outOfTime.message }`); // Consola
-                await sendAnimation(null, types.outOfTime, user); // Telegram
                 return;
             }
 
@@ -119,7 +151,6 @@ const self = {
                 if ( text === 'Presente') { // Caso 1.1: Si la asistencia ya ha sido tomada
                     // Notificar al usuario
                     console.log(`${ types.alreadySaved.status } ${ types.alreadySaved.code }: ${ types.alreadySaved.message }`); // Consola
-                    await sendAnimation(nombreMateria, types.alreadySaved, user); // Telegram
                 }
                 else { // Caso 1.2: La asistencia no ha sido tomada
                     // Esperar delay en caso de ser necesario
@@ -152,19 +183,16 @@ const self = {
             
                         // Enviar notificación de la asistencia tomada
                         console.log(`${ types.saved.status } ${ types.saved.code }: ${ types.saved.message }`); // Consola
-                        await sendAnimation(nombreMateria, types.saved, user); // Telegram
                     }
                     else { // Si no está habilitada la asistencia
                         // Enviar notificación del error
                         console.log(`${ types.disable.status } ${ types.disable.code }: ${ types.disable.message }`); // Consola
-                        await sendAnimation(nombreMateria, types.disable, user); // Telegram
                     }
                 }
             }
             else { // Caso 2: No es posible tomar la asistencia (No hay asistencia asignada)
                 // Notificar al usuario
                 console.log(`${ types.nonExistent.status } ${ types.nonExistent.code }: ${ types.nonExistent.message }`); // Consola
-                await sendAnimation(nombreMateria, types.nonExistent, user); // Telegram
             }  
         }
         catch(error) {

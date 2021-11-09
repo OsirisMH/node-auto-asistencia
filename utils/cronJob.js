@@ -1,22 +1,28 @@
+// * Importaciones externas
 const CronJob = require('cron').CronJob;
 const moment = require('moment');
 require('dotenv').config();
 
-const { osiris, adrian } = JSON.parse(process.env.USER_DATA);
+// * Importaciones internas
 const { Attendance } = require('../models/Attendance');
-const { sendMessage } = require('../utils/telegram');
+
+// * Configuración de las variables de entorno
+const schedule = process.env.SCHEDULE;
+const user = process.env.MOODLE_USERNAME;
+const password = process.env.MODDLE_USER_PASSWORD;
 
 // * Documentación de las tareas a ejecutar con Cron
 // ? Función prinicipal
-const takeAttendance = async(user) => {
+const takeAttendance = async() => {
     try {
-        const { moddleUsername, moddlePassword } = user;
+        console.log(`Usuario: ${process.env.USERNAME || 'No identificado'}`.brightCyan);
         
-        console.log(`${user.name}`.brightCyan);
         await Attendance.initialize();
-        await Attendance.login(moddleUsername, moddlePassword);
-        await Attendance.takeAttendance(user);
-        await Attendance.logout();
+        const isLogged = await Attendance.login(user, password);
+        if ( isLogged ){
+            await Attendance.takeAttendance();
+            await Attendance.logout();
+        }
     }
     catch (e) {
         console.error(e);
@@ -25,7 +31,6 @@ const takeAttendance = async(user) => {
 
 // ? Función ejectutada al completar la tarea
 const completedTask = async () => {
-    await sendMessage(' Mi trabajo ha terminado ^_^\n¡Nos vemos mañana!');
     console.log(`\nEjecución finalizada (${ moment().tz('America/Chihuahua').format('MMMM Do YYYY, h:mm:ss a') })...`);
 }
 
@@ -37,18 +42,10 @@ const mayStopJob = () => {
 }
 
 // ? El CronJob que ejecutará nuestra funcion prinicipal
-const job = new CronJob('0 15 15,16,17,18,19 * * *', async function() {
+const job = new CronJob(schedule, async function() {
     
     // Función principal
-    // * await (async function(){
-    // *  const res = new Promise((resolve) => {
-    // *        resolve('Hola mundo');
-    // *   });
-    // *   console.log(await res);
-    // * }()); // DEV
-
-    await takeAttendance(osiris);
-    await takeAttendance(adrian);
+    await takeAttendance();
 
     // Detener la tarea si se cumple la condición
     if ( mayStopJob() ){
