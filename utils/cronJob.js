@@ -37,16 +37,9 @@ const mayStopJob = () => {
 }
 
 // ? El CronJob que ejecutará nuestra funcion prinicipal
-const job = new CronJob('0 15 15,16,17,18,19 * * *', async function() {
+const job = new CronJob(process.env.SCHEDULE, async function() {
     
     // Función principal
-    // * await (async function(){
-    // *  const res = new Promise((resolve) => {
-    // *        resolve('Hola mundo');
-    // *   });
-    // *   console.log(await res);
-    // * }()); // DEV
-
     await takeAttendance(osiris);
     await takeAttendance(adrian);
 
